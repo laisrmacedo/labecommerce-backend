@@ -1,0 +1,25 @@
+{
+  "name": "kebab-case",
+  "version": "1.0.0",
+  "description": "Exercicio Feedback Intro Backend",
+  "main": "index.js",
+
+  "type":"module",
+  "scripts": {
+    "test": "test",
+    "start":"node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laisrmacedo/labecommerce-backend.git"
+  },
+  "keywords": [
+    "labe"
+  ],
+  "author": "Lais Rodrigues",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/laisrmacedo/labecommerce-backend/issues"
+  },
+  "homepage": "https://github.com/laisrmacedo/labecommerce-backend#readme"
+}

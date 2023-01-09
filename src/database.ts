@@ -76,7 +76,7 @@ export const getProductById = (idToSearch: string) => {
   }
 }
 
-//EXERCICIO 2
+//EXERCICIO 3
 export const queryProductsByName  = (q: string) => {
   const foundProduct = Produtos.filter((item) => item.name === q)
   

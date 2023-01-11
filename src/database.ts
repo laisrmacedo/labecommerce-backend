@@ -23,14 +23,12 @@ export const Produtos: TProduto[] = [
     id: "p1025",
     name: "cadeira",
     price: 50,
-    // category: "moveis"
     category: Products.FITMENT
   },
   {
     id: "p1055",
     name: "smartphone",
     price: 1850,
-    // category: "tecnologia"
     category: Products.ELECTRONICS
   },
   {  

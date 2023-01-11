@@ -10,6 +10,11 @@ export const Users: TUser[] = [
     id: "fulanodetal",
     email: "fulanodetal@gmail.com",
     password: "fulano"
+  },
+  {
+    id: "userDeletado",
+    email: "userdeletado@gmail.com",
+    password: "deletado"
   }
 ]
 
@@ -27,19 +32,25 @@ export const Produtos: TProduto[] = [
     price: 1850,
     // category: "tecnologia"
     category: Products.ELECTRONICS
+  },
+  {  
+    id: "p0000",
+    name: "produtoDeletado",
+    price: 0,
+    category: Products.ELECTRONICS
   }
 ]
 
 export const Purchase: TPurchase[] = [
   {  
     userId: "laisrmacedo",
-    productId: "1025",
+    productId: "p1025",
     quantity: 4,
     totalPrice: 200
   },
   {  
     userId: "fulanodetal",
-    productId: "1055",
+    productId: "p1055",
     quantity: 1,
     totalPrice: 1850
   }

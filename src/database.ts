@@ -32,10 +32,10 @@ export const Produtos: TProduto[] = [
     category: Products.ELECTRONICS
   },
   {  
-    id: "p0000",
-    name: "produtoDeletado",
-    price: 0,
-    category: Products.ELECTRONICS
+    id: "p1022",
+    name: "anel",
+    price: 150,
+    category: Products.ACCESSORIES
   }
 ]
 

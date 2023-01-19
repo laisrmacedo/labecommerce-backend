@@ -6,10 +6,10 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (id, email, password)
--- VALUES ("laisrmacedo","laisrmacedo@gmail.com", "anonovo"),
--- ("fulanodetal", "fulanodetal@gmail.com", "fulano"),
+VALUES ("u001","laisrmacedo@gmail.com", "anonovo"),
+("u002", "fulanodetal@gmail.com", "fulano"),
+("u003", "joao@gmail.com", "senhadejoao");
 -- ("userDeletado", "userdeletado@gmail.com", "deletado");
-VALUES ("joao", "joao@gmail.com", "senhadejoao");
 
 
 SELECT * FROM users;
@@ -40,7 +40,7 @@ WHERE id = 'p1087';
 
 --Delete user by id
 DELETE FROM users
-WHERE id = "userDeletado";
+WHERE id = "fulanodetal";
 
 --Delete product by id
 DELETE FROM products
@@ -66,6 +66,39 @@ ORDER BY price ASC;
 
 --Get All Products versão 2
 
+-- Relaçoes SQL ------------------
 
+CREATE TABLE purchases (
+  id TEXT PRIMARY KEY UNIQUE NOT NULL,
+  total_price REAL UNIQUE NOT NULL,
+  paid INTEGER NOT NULL,
+  delivered_at TEXT,
+  buyer_id TEXT NOT NULL,
+  FOREIGN KEY (buyer_id) REFERENCES users (id)
+);
 
+SELECT * FROM purchases;
 
+INSERT INTO purchases (
+  id,
+  total_price,
+  paid,
+  delivered_at,
+  buyer_id
+  )
+VALUES 
+  ("c001", 200, 1, "u001"),
+  ("c002", 1599.95, 0, "u001"),
+  ("c003", 50.25, 1, "u002"),
+  ("c004", 19.90, 1, "u002"),
+  ("c005", 568.91, 1, "u003"),
+  ("c006", 477.25, 0, "u003");
+
+UPDATE purchases
+SET delivered_at = DATETIME ("NOW")
+WHERE id = "c001";
+
+SELECT * FROM users
+INNER JOIN purchases
+ON purchases.buyer_id = users.id
+WHERE buyer_id = "u001"

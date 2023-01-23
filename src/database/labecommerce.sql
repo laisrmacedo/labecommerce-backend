@@ -87,12 +87,14 @@ INSERT INTO purchases (
   buyer_id
   )
 VALUES 
-  ("c001", 200, 1, "u001"),
-  ("c002", 1599.95, 0, "u001"),
-  ("c003", 50.25, 1, "u002"),
-  ("c004", 19.90, 1, "u002"),
-  ("c005", 568.91, 1, "u003"),
-  ("c006", 477.25, 0, "u003");
+  ("c001", 200, 1, null, "u001"),
+  ("c002", 2100, 0, null, "u001"),
+  ("c003", 50, 1, null, "u002"),
+  ("c004", 19.90, 1, null, "u002"),
+  ("c005", 568.91, 1, null, "u003"),
+  ("c006", 477.25, 0, null, "u003");
+
+DROP TABLE purchases;
 
 UPDATE purchases
 SET delivered_at = DATETIME ("NOW")
@@ -101,4 +103,29 @@ WHERE id = "c001";
 SELECT * FROM users
 INNER JOIN purchases
 ON purchases.buyer_id = users.id
-WHERE buyer_id = "u001"
+WHERE buyer_id = "u001";
+
+-- Relaçoes SQL II ------------------
+
+CREATE TABLE purchases_products (
+  purchases_id TEXT NOT NULL,
+  products_id TEXT NOT NULL,
+  quantity INTEGER NOT NULL
+);
+
+INSERT INTO purchases_products(
+  purchases_id,
+  products_id,
+  quantity
+)
+VALUES
+  ("c001", "p1025", 4),
+  ("c002", "p1025", 1),
+  ("c003", "p1022", 3);
+
+SELECT * FROM purchases_products
+RIGHT JOIN products
+ON purchases_products.products_id = products.id
+LEFT JOIN purchases
+ON purchases_products.purchases_id = purchases.id
+

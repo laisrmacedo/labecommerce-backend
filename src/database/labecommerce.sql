@@ -5,6 +5,8 @@ CREATE TABLE users (
   password TEXT NOT NULL 
 );
 
+SELECT * FROM users;
+
 INSERT INTO users (id, email, password)
 VALUES ("u001","laisrmacedo@gmail.com", "anonovo"),
 ("u002", "fulanodetal@gmail.com", "fulano"),
@@ -23,10 +25,10 @@ CREATE TABLE products (
 );
 
 INSERT INTO products (id, name, price, category)
--- VALUES ("p1025","cadeira", 50, "Móveis"),
--- ("p1055", "smartphone", 1850, "Eletrônicos"),
--- ("p1022", "anel", 150, "Acessórios");
-VALUES ("p1087", "sofá", 850, "Móveis");
+VALUES ("p1025","cadeira", 50, "Móveis"),
+("p1055", "smartphone", 1850, "Eletrônicos"),
+("p1022", "anel", 150, "Acessórios"),
+("p1087", "sofá", 850, "Móveis");
 
 SELECT * FROM products;
 

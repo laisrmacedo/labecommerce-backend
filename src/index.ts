@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express'
 import cors from 'cors'
 import { Users, Produtos, Purchase } from './database'
 import {TUser, TProduto, TPurchase, Products} from './types'
+import { db } from '../src/database/knex'
 
 const app = express()
 
@@ -17,41 +18,65 @@ app.get('/ping', (req: Request, res: Response) => {
 })
 
 //all users
-app.get('/users', (req: Request, res: Response) => {
+//refatorado 
+app.get('/users', async (req: Request, res: Response) => {
   try {
-    res.status(200).send(Users)
+    const result = await db.raw(`SELECT * FROM users;`)
+    res.status(200).send(result)
+    
   } catch (error) {
     console.log(error)
-    if(res.statusCode === 200){
-      res.status(500)
+    if (req.statusCode === 200) {
+        res.status(500)
     }
-    res.send(error)
+    if (error instanceof Error) {
+        res.send(error.message)
+    } else {
+        res.send("Erro inesperado")
+    }
   }
 })
 
 //create user
-app.post('/users', (req: Request, res: Response) => {
-  const {id, email, password} = req.body as TUser
+//refatorado
+app.post('/users', async (req: Request, res: Response) => {
+  try {
+    const {id, email, password} = req.body as TUser
+  
+    if(!id || !email || !password){
+      res.status(400)
+      throw new Error("Todos os campos são obrigatórios.")
+    }
+  
+    // >>>>Verificação ID
+      const [foundUserId] = await db.raw(`SELECT * FROM users WHERE id = "${id}"`)
+      const [foundUserEmail] = await db.raw(`SELECT * FROM users WHERE email = "${email}"`)
+  
+      if(!foundUserId && !foundUserEmail){
+        await db.raw(`
+          INSERT INTO users (id, email, password)
+          VALUES ("${id}", "${email}", "${password}");
+        `)
+        res.status(201).send("Usuário cadastrada com sucesso")
+      }else{
+        res.status(404)
+        throw new Error("Id ou email já existem")
+      }
+    
+  } catch (error) {
+    console.log(error)
 
-  if(id === undefined || email === undefined || password === undefined){
-    res.status(400)
-    throw new Error("Todos os campos são obrigatórios.")
+    if (req.statusCode === 200) {
+        res.status(500)
+    }
+
+    if (error instanceof Error) {
+        res.send(error.message)
+    } else {
+        res.send("Erro inesperado")
+    }
   }
 
-  // >>>>Verificação ID
-    const foundProductUserId = Users.find((user)=>{
-      return user.id === id && user.email === email
-    })
-
-    if(!foundProductUserId){
-      const newUser = {
-        id,
-        email,
-        password
-      }
-      Users.push(newUser)
-      res.status(201).send("Usuário cadastrado com sucesso")
-    }
 })
 
 //delete user by id
@@ -108,32 +133,38 @@ app.put('/user/:id', (req: Request, res: Response)=>{
 //======================================================
 
 //all products
-app.get('/produtos', (req: Request, res: Response) => {
+//refatorado 
+app.get('/products', async (req: Request, res: Response) => {
   try {
-    res.status(200).send(Produtos)
+    const result = await db.raw(`SELECT * FROM products`)
+    res.status(200).send(result)
   } catch (error) {
     console.log(error)
-    if(res.statusCode === 200){
-      res.status(500)
+    if (req.statusCode === 200) {
+        res.status(500)
     }
-    res.send(error)
+    if (error instanceof Error) {
+        res.send(error.message)
+    } else {
+        res.send("Erro inesperado")
+    }
   }
 })
 
 //products by id
-app.get('/produtos/:id', (req: Request, res: Response) => {
+app.get('/products/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string
-    const result = Produtos.filter((produto)=>{
-      return produto.id === id
-    })
+    const result = await db.raw(`
+      SELECT * FROM products 
+      WHERE id = "${id}";`)
 
-    if(!result){
-      res.status(404)
-      throw new Error("Produto não encontrado")
-    }else{
-      res.status(200).send(result)
-    }
+      if(!result){
+        res.status(404)
+        throw new Error("Produto não encontrado")
+      }else{
+        res.status(200).send(result)
+      }
 
   } catch (error) {
     console.log(error)
@@ -145,29 +176,35 @@ app.get('/produtos/:id', (req: Request, res: Response) => {
 })
 
 //products by name
-app.get('/produtos/search', (req: Request, res: Response) => {
+app.get('/products/search', async (req: Request, res: Response) => {
   try {
-    const q = req.query.q as string
-    if(q.length < 1){
+    const name = req.query.name as string
+    const result = await db.raw(`
+      SELECT * FROM products 
+      WHERE name = "${name}";
+    `)
+    
+    if(result.length < 1){
       res.status(400)
       throw new Error("'Query' deve ter pelo menos 1 caractere")
     }
-    const result = Produtos.filter((produto)=>{
-      return produto.name.toLowerCase().includes(q.toLowerCase())
-    })
-    res.status(200).send(result)
     
+    res.status(200).send(result)
   } catch (error) {
     console.log(error)
-    if(res.statusCode === 200){
-      res.status(500)
+    if (req.statusCode === 200) {
+        res.status(500)
     }
-    res.send(error)
+    if (error instanceof Error) {
+        res.send(error.message)
+    } else {
+        res.send("Erro inesperado")
+    }
   }
 })
 
 //delete produto by id
-app.delete('/produtos/:id', (req: Request, res: Response) => {
+app.delete('/products/:id', (req: Request, res: Response) => {
   const id = req.params.id as string
   const produtoIndex = Produtos.findIndex((produto)=>{
     return produto.id === id
@@ -188,7 +225,7 @@ app.delete('/produtos/:id', (req: Request, res: Response) => {
 })
 
 //edit product by id
-app.put('/produtos/:id', (req: Request, res: Response)=>{
+app.put('/products/:id', (req: Request, res: Response)=>{
   const id = req.params.id
 
   const newId = req.body.id as string | undefined
@@ -219,7 +256,7 @@ app.put('/produtos/:id', (req: Request, res: Response)=>{
 })
 
 //create product
-app.post('/produtos', (req: Request, res: Response) => {
+app.post('/products', (req: Request, res: Response) => {
   const {id, name, price, category} = req.body as TProduto
 
   if( id === undefined || 

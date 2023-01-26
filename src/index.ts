@@ -13,16 +13,22 @@ app.listen(3003, () => {
     console.log("Servidor rodando na porta 3003")
 })
 
+//teste
 app.get('/ping', (req: Request, res: Response) => {
     res.send('Pong!')
 })
 
 //all users
-//refatorado 
 app.get('/users', async (req: Request, res: Response) => {
   try {
-    const result = await db.raw(`SELECT * FROM users;`)
-    res.status(200).send(result)
+    const searchTerm = req.query.q as string | undefined
+    if(searchTerm === undefined){
+      const result = await db('users')
+      res.status(200).send(result)
+    }else {
+      const result = await db('users').where("id", "LIKE", `%${searchTerm}%`)
+      res.status(200).send(result)
+    }
     
   } catch (error) {
     console.log(error)
@@ -38,7 +44,6 @@ app.get('/users', async (req: Request, res: Response) => {
 })
 
 //create user
-//refatorado
 app.post('/users', async (req: Request, res: Response) => {
   try {
     const {id, email, password} = req.body as TUser
@@ -47,21 +52,46 @@ app.post('/users', async (req: Request, res: Response) => {
       res.status(400)
       throw new Error("Todos os campos são obrigatórios.")
     }
+
+    if(typeof id !== "string" || typeof email !== "string" || typeof password !== "string"){
+      res.status(400)
+      throw new Error("Dado inválido. Todos devem ser do tipo 'string'.")
+    }
+    if(id.length < 4){
+      res.status(400)
+      throw new Error("id deve ter pelo menos 4 caracteres")
+    }
+    if(id[0] !== "u") {
+      res.status(400)
+      throw new Error("id deve iniciar com a letra 'u'")
+    }
+    if (!email.match(/^[\w-.]+@([\w-]+.)+[\w-]{2,4}$/g)) {
+			throw new Error("O email deve ter o formato 'exemplo@exemplo.com'.")
+		}
+    if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,12}$/g)) {
+			throw new Error("'password' deve possuir entre 8 e 12 caracteres, com letras maiúsculas e minúsculas e no mínimo um número e um caractere especial")
+		}
+    
+    // >>>>Verificação de repetição
+      const [foundUserId] = await db('users').where({id})
+      const [foundUserEmail] = await db('users').where({email})
   
-    // >>>>Verificação ID
-      const [foundUserId] = await db.raw(`SELECT * FROM users WHERE id = "${id}"`)
-      const [foundUserEmail] = await db.raw(`SELECT * FROM users WHERE email = "${email}"`)
-  
-      if(!foundUserId && !foundUserEmail){
-        await db.raw(`
-          INSERT INTO users (id, email, password)
-          VALUES ("${id}", "${email}", "${password}");
-        `)
-        res.status(201).send("Usuário cadastrada com sucesso")
-      }else{
+      // if(!foundUserId && !foundUserEmail){
+      //   await db('users').insert({id, email, password})
+      //   res.status(201).send("Usuário cadastrada com sucesso")
+      // }
+
+      if(foundUserId){
         res.status(404)
-        throw new Error("Id ou email já existem")
+        throw new Error("Este id já está cadastrado")
       }
+      if(foundUserEmail){
+        res.status(404)
+        throw new Error("Este email já está cadastrado")
+      }
+
+      await db('users').insert({id, email, password})
+      res.status(201).send("Usuário cadastrada com sucesso")
     
   } catch (error) {
     console.log(error)
@@ -80,63 +110,90 @@ app.post('/users', async (req: Request, res: Response) => {
 })
 
 //delete user by id
-app.delete('/users/:id', (req: Request, res: Response) => {
-  const id = req.params.id as string
-  const userIndex = Users.findIndex((user)=>{
-    return user.id === id
-  })
+app.delete('/users/:id', async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id 
+    //Não funciona
+    if(!id) {
+      res.status(404)
+      throw new Error('Informe um id')
+    }
 
+    // >>>>Verificaçao se usuaario existe
+    const [foundId] = await db("users").where({id})
 
-// >>>>Verificaçao se usuaario existe
-    if(!userIndex){
+    if(foundId){
+      await db("users").del().where({id})
+      res.status(200).send("Usuário deletado com sucesso")
+    }else {
       res.status(404)
       throw new Error("Usuário não encontrado")
     }
 
-  if(userIndex>=0){
-    Users.splice(userIndex, 1)
-    res.status(200).send('User deletado com sucesso')
-  }else{
-      res.status(404).send('User nao encontrado')
+  } catch (error) {
+    console.log(error)
+
+    if (req.statusCode === 200) {
+        res.status(500)
+    }
+
+    if (error instanceof Error) {
+        res.send(error.message)
+    } else {
+        res.send("Erro inesperado")
+    }
   }
 })
 
 //edit user by id
-app.put('/user/:id', (req: Request, res: Response)=>{
-  const id = req.params.id
+app.put('/user/:id', async (req: Request, res: Response)=>{
+  try {
+    const idToEdit = req.params.id
+    if(!idToEdit) {
+      res.status(404)
+      throw new Error('Informe um id')
+    }
 
-  const newId = req.body.id as string | undefined
-  const newEmail = req.body.email as string | undefined
-  const newPassword = req.body.password as string | undefined
-  
-  const foundUser = Users.find((user) => {
-      return user.id === id
-  })
+    const {id: newId, email: newEmail, password: newPassword} = req.body as TUser
+
+    const [foundUser] = await db('users').where({id: idToEdit})
 
 // >>>>Verificaçao se produto existe
-      if(!foundUser){
-        res.status(404)
-        throw new Error("Produto não encontrado")
+    if(foundUser){
+      const newUser = {
+        id: newId || foundUser.id, 
+        email: newEmail || foundUser.email, 
+        password: newPassword || foundUser.password
       }
 
-  if(foundUser){
-      foundUser.id = newId || foundUser.id
-      foundUser.email = newEmail || foundUser.email
-      foundUser.password = newPassword || foundUser.password
-
+      await db('users').update(newUser).where({id: idToEdit})
       res.status(200).send('User editado com sucesso')
-  }else{
-      res.status(404).send('User nao encontrado')
+    } else{
+      res.status(404)
+      throw new Error("Usuário não encontrado")
+    }
+
+  } catch (error) {
+    console.log(error)
+
+    if (req.statusCode === 200) {
+        res.status(500)
+    }
+
+    if (error instanceof Error) {
+        res.send(error.message)
+    } else {
+        res.send("Erro inesperado")
+    }
   }
 })
 
 //======================================================
 
 //all products
-//refatorado 
 app.get('/products', async (req: Request, res: Response) => {
   try {
-    const result = await db.raw(`SELECT * FROM products`)
+    const result = await db('products')
     res.status(200).send(result)
   } catch (error) {
     console.log(error)
@@ -288,8 +345,47 @@ app.post('/products', (req: Request, res: Response) => {
 //======================================================
 
 //all purchase
-app.get('/purchase', (req: Request, res: Response) => {
-  res.status(200).send(Purchase)
+app.get('/purchase', async (req: Request, res: Response) => {
+  try {
+    const result = await db('purchases')
+    res.status(200).send(result)
+  } catch (error) {
+    console.log(error)
+    if (req.statusCode === 200) {
+        res.status(500)
+    }
+    if (error instanceof Error) {
+        res.send(error.message)
+    } else {
+        res.send("Erro inesperado")
+    }
+  }
+})
+
+//purchase by id
+app.get('/purchase/:id', async (req: Request, res:Response) => {
+  try {
+    const id = req.params.id
+    const [foundPurchase] = await db('purchases').where({id})
+
+    if(foundPurchase){
+      res.status(200).send(foundPurchase)
+    }else{
+      res.status(404)
+      throw new Error("Informe uma Id")
+    }
+
+  } catch (error) {
+    console.log(error)
+    if (req.statusCode === 200) {
+        res.status(500)
+    }
+    if (error instanceof Error) {
+        res.send(error.message)
+    } else {
+        res.send("Erro inesperado")
+    }
+  }
 })
 
 //purchase by user id
@@ -311,6 +407,23 @@ app.get('/users/:id/purchase/', (req: Request, res: Response) => {
 
 //create purchase
 app.post('/purchase', (req: Request, res: Response) => {
+  try {
+    const {id, total_price, paid, delivered_at, buyer_id} = req.body
+
+
+  } catch (error) {
+    console.log(error)
+
+    if (req.statusCode === 200) {
+        res.status(500)
+    }
+
+    if (error instanceof Error) {
+        res.send(error.message)
+    } else {
+        res.send("Erro inesperado")
+    }
+  }
   const {userId, productId, quantity, totalPrice} = req.body as TPurchase
 
   if( userId === undefined || 

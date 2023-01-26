@@ -81,6 +81,8 @@ CREATE TABLE purchases (
 
 SELECT * FROM purchases;
 
+DROP TABLE purchases;
+
 INSERT INTO purchases (
   id,
   total_price,

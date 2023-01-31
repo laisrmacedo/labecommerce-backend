@@ -22,20 +22,17 @@ USERS
 - DEL Delete User; 
 
 PRODUCTS
-- GET All Products; OK
-- GET Products by Name; OK
-- GET Product by Id; -------
-- POST Create Product; OK
-- PUT Edit Product; OK
-- DEL Delete Product; -------
+- GET All Products;
+- GET Product by Id;
+- POST Create Product;
+- PUT Edit Product;
+- DEL Delete Product;
 
 PURCHASES
-- GET All Purchases; OK
-- GET Purchases by Name; OK
-- GET Purchase by Id; -------
-- POST Create Purchase; ------
-<!-- - PUT Edit Purchase; -->
-- DEL Delete Purchase; ------
+- GET All Purchases;
+- GET Purchase by Id;
+- POST Create Purchase;
+- DEL Delete Purchase;
 
 ## 🛠 Tecnologias Utilizadas
 

@@ -31,44 +31,6 @@ SELECT * FROM products;
 
 DROP TABLE products;
 
--- Search products by name
-SELECT * FROM products
-WHERE name LIKE '%ira';
-
--- Search products by id
-SELECT * FROM products
-WHERE id = 'p1087';
-
---Delete user by id
-DELETE FROM users
-WHERE id = "fulanodetal";
-
---Delete product by id
-DELETE FROM products
-WHERE id = "p1087";
-
--- Edit user by id
-UPDATE users
-SET password = "bananinha123"
-WHERE id = "laisrmacedo";
-
--- Edit products by id
-UPDATE products
-SET price = 2100
-WHERE id = "p1055";
-
---Get All Users
-SELECT * FROM users
-ORDER BY email ASC;
-
---Get All Products versão 1
-SELECT * FROM products
-ORDER BY price ASC;
-
---Get All Products versão 2
-
--- Relaçoes SQL ------------------
-
 CREATE TABLE purchases (
   id TEXT PRIMARY KEY UNIQUE NOT NULL,
   buyer_id TEXT NOT NULL,
@@ -80,23 +42,11 @@ CREATE TABLE purchases (
 
 INSERT INTO purchases (id, buyer_id, total_price, paid)
 VALUES 
-  -- ("c001", "u001", 5000, 0),
   ("c002", "u002", 2100, 0);
 
 SELECT * FROM purchases;
 
 DROP TABLE purchases;
-
-UPDATE purchases
-SET delivered_at = DATETIME ("NOW")
-WHERE id = "c001";
-
-SELECT * FROM users
-INNER JOIN purchases
-ON purchases.buyer_id = users.id
-WHERE buyer_id = "u001";
-
--- Relaçoes SQL II ------------------
 
 CREATE TABLE purchases_products (
   purchase_id TEXT NOT NULL,

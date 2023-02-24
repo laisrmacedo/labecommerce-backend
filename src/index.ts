@@ -273,6 +273,7 @@ app.get('/products', async (req: Request, res: Response) => {
         imageUrl: product.image_url
       })
     }
+    console.log(searchTerm)
 
     if(searchTerm === undefined){
       res.status(200).send(stylizedResult)
@@ -548,7 +549,7 @@ app.put('/products/:id', async (req: Request, res: Response)=>{
 
 //======================================================
 
-//all purchase OK
+//all purchase
 app.get('/purchases', async (req: Request, res: Response) => {
   try {
     const result = await db('purchases')
@@ -570,7 +571,7 @@ app.get('/purchases', async (req: Request, res: Response) => {
   }
 })
 
-// Create purchases - OK
+// Create purchases
 app.post('/purchases', async (req: Request, res: Response) => {
   try {
     const {purchaseId, buyerId} = req.body as TPurchase
@@ -684,7 +685,7 @@ app.post('/purchases', async (req: Request, res: Response) => {
 
     res.status(201).send({
       message: "Compra cadastrada com sucesso",
-      user: stylizedPurchase
+      purchase: stylizedPurchase
     })
 
   } catch (error) {
@@ -702,7 +703,7 @@ app.post('/purchases', async (req: Request, res: Response) => {
   }
 })
 
-// Delete purchase by id - OK
+// Delete purchase by id
 app.delete('/purchases/:id', async (req: Request, res: Response) => {
   try {
     const idToDelete = req.params.id
@@ -737,7 +738,7 @@ app.delete('/purchases/:id', async (req: Request, res: Response) => {
   }
 })
 
-//purchase by id - OK
+//purchase by id
 app.get('/purchases/:id', async (req: Request, res:Response) => {
   try {
     const id = req.params.id
@@ -775,7 +776,6 @@ app.get('/purchases/:id', async (req: Request, res:Response) => {
 
       for (const product of productsInPurchaseFound) {
         const [buyedProducts] = await db('products').where({id: product.product_id})
-        console.log(buyedProducts)
         if(!buyedProducts){
           res.status(422)
           throw new Error("ERRO: Busca interrompida. Algumas informações desta compra foram excluidas do banco de dados.")
